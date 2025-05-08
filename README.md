@@ -1,6 +1,6 @@
 # Fraud-Detection-UPI-ChatBot
-Abstract
-The exponential growth of digital payment systems has ushered in a new era of convenience
+## Abstract
+''' The exponential growth of digital payment systems has ushered in a new era of convenience
 and financial inclusivity. However, this transformation has also increased exposure to cyber
 threats and fraudulent activities, especially in real-time transaction environments like the Unified
 Payments Interface (UPI). To address this challenge, the UPI Fraud Detection Chatbot has been
@@ -21,10 +21,10 @@ generation of downloadable PDF reports summarizing system functionality and outc
 Overall, the UPI Fraud Detection Chatbot bridges the gap between security and usability in
 digital finance. It serves as a proof-of-concept for how data-driven methods and interactive user
 interfaces can collaborate to prevent financial losses and enhance trust in electronic payment
-systems.
-Introduction
-Purpose of the Project
-The purpose of this project is to design and implement an intelligent, real-time fraud detection
+systems. '''
+## Introduction
+### Purpose of the Project
+''' The purpose of this project is to design and implement an intelligent, real-time fraud detection
 system specifically targeted at UPI (Unified Payments Interface) transactions, which have seen
 a dramatic rise in usage across India and other parts of the world. As digital transactions
 become the default mode of financial interaction, ensuring their security becomes critically
@@ -57,9 +57,9 @@ In essence, the project's purpose is twofold:
 to offer a scalable, modular framework that can be extended to other digital payment
 ecosystems and fraud scenarios.
 By combining practical utility with academic rigor, the project aligns with the growing demand for
-AI-driven financial security solutions.
-What Problem It Solves
-In the age of digital transformation, financial transactions have become faster, easier, and more
+AI-driven financial security solutions. '''
+### What Problem It Solves
+''' In the age of digital transformation, financial transactions have become faster, easier, and more
 accessible than ever before. With platforms like UPI (Unified Payments Interface), users can
 transfer money instantly with just a mobile device and minimal authentication. However, this
 growing convenience has also opened the floodgates to a surge in fraudulent activities. Every
@@ -94,114 +94,92 @@ still developing.
 In summary, the project solves critical issues of accessibility, timeliness, and adaptability in
 fraud detection by offering a predictive, real-time system that empowers users and addresses
 the limitations of traditional rule-based or passive security models.
-Technology Stack
-Languages
-●
-●
-Python: Backend and ML modeling
-HTML, CSS, JavaScript: Frontend web development
-Frameworks & Libraries
-●
-●
-●
-●
-●
-●
-Flask: Web framework to serve the application
-Pandas, NumPy: Data manipulation and numerical computing
-Scikit-learn: Traditional ML models (Isolation Forest, One-Class SVM)
-XGBoost: Advanced gradient boosting model
-Flatpickr: Lightweight JS library for datetime selection
-html2pdf.js: For PDF report generation
-System Architecture
-High-Level Overview
-The UPI Fraud Detection Chatbot is built on a modular and layered architecture that facilitates
+#### Technology Stack
+##### Languages
+● Python: Backend and ML modeling
+● HTML, CSS, JavaScript: Frontend web development
+
+##### Frameworks & Libraries
+● Flask: Web framework to serve the application
+● Pandas, NumPy: Data manipulation and numerical computing
+● Scikit-learn: Traditional ML models (Isolation Forest, One-Class SVM)
+● XGBoost: Advanced gradient boosting model
+● Flatpickr: Lightweight JS library for datetime selection
+● html2pdf.js: For PDF report generation
+'''
+
+### System Architecture
+#### High-Level Overview
+''' The UPI Fraud Detection Chatbot is built on a modular and layered architecture that facilitates
 seamless interaction between the user interface, backend services, and machine learning
 components. The design ensures maintainability, scalability, and responsiveness, making it
 suitable for real-time applications. The system follows a typical client-server architecture.
-●
-●
-Frontend (index.html, script.js):
-○
-User inputs transaction amount and timestamp.
-○
-Sends data via HTTP POST to Flask backend.
-Backend (app.py):
-○
-Receives input.
-○
-Loads pre-trained models (trained via generate_transactions.py).
-○
-Runs predictions using Isolation Forest, One-Class SVM, and XGBoost.
-○
-Uses majority voting to determine the final result.
-○
-Returns response to frontend.
+● Frontend (index.html, script.js):
+○ User inputs transaction amount and timestamp.
+○ Sends data via HTTP POST to Flask backend.
+● Backend (app.py):
+○ Receives input.
+○ Loads pre-trained models (trained via generate_transactions.py).
+○ Runs predictions using Isolation Forest, One-Class SVM, and XGBoost.
+○ Uses majority voting to determine the final result.
+○ Returns response to frontend.
 1. User Interface (Frontend)
 The frontend is designed using HTML, CSS, and JavaScript and provides a clean, user-friendly
 interface styled like a chatbot. It includes:
-●
-●
-●
-A number input field for transaction amount.
-A datetime picker (powered by Flatpickr) for selecting the transaction timestamp.
-A "Send" button that submits the transaction data.
+● A number input field for transaction amount.
+● A datetime picker (powered by Flatpickr) for selecting the transaction timestamp.
+● A "Send" button that submits the transaction data.
+
 The JavaScript listens for form submission, validates input, and sends the data to the backend
 using an asynchronous fetch() call via HTTP POST.
+
 2. Flask API (Backend Layer)
 The backend is implemented using Flask, a lightweight Python web framework. It serves as the
 intermediary between the frontend and the ML models. It exposes a RESTful API endpoint
 (/predict) that:
-●
-●
-●
-●
-●
-Accepts JSON input from the frontend.
-Parses the amount and timestamp.
-Preprocesses the input and prepares it for model inference.
-Routes the input to the ensemble ML model function.
-Returns the fraud prediction result (either "Fraud" or "Not Fraud").
+● Accepts JSON input from the frontend.
+● Parses the amount and timestamp.
+● Preprocesses the input and prepares it for model inference.
+● Routes the input to the ensemble ML model function.
+● Returns the fraud prediction result (either "Fraud" or "Not Fraud").
+
 3. Machine Learning Engine
 The core intelligence of the system lies in its ML pipeline, which uses three distinct models
 trained on labeled or synthetically generated transaction data:
-●
-●
-●
-Isolation Forest: An unsupervised anomaly detection model that isolates anomalies
+● Isolation Forest: An unsupervised anomaly detection model that isolates anomalies
 rather than profiling normal data.
-One-Class SVM: A support vector machine variant trained on normal data to identify
+● One-Class SVM: A support vector machine variant trained on normal data to identify
 outliers.
-XGBoost Classifier: A supervised learning model trained on labeled data to classify
+● XGBoost Classifier: A supervised learning model trained on labeled data to classify
 transactions based on complex decision boundaries.
+
 Each model evaluates the transaction independently. Their predictions are then combined using
 a majority voting mechanism:
-●
-●
-If two or more models detect fraud, the final result is marked as "Fraud"
-Otherwise, it is classified as "Not Fraud"
-.
-.
+● If two or more models detect fraud, the final result is marked as "Fraud"
+● Otherwise, it is classified as "Not Fraud"
+
 This ensemble approach improves robustness and reduces the chances of false positives or
 false negatives.
+
 4. Output Response
 Once a prediction is made, the backend sends a JSON response back to the frontend, which
 dynamically updates the UI with the result.
 Architecture Diagram
 [User Input Form]
-↓
+       ↓
 [Frontend JS → POST]
-↓
+       ↓
 [Flask App → Predict()]
-↓
-[ML Models]
-↓
+       ↓
+  [ML Models]
+       ↓
 [Response: FRAUD or NOT FRAUD]
-↓
+       ↓
 [Displayed on UI]
+
 This structure ensures that each component performs a single responsibility, adhering to the
 principles of modularity and separation of concerns.
-Database Diagram
+## Database Diagram
 Currently, the system operates on synthetic transaction data stored in a CSV file named
 transactions.csv. This acts as a flat-file database for model training and experimentation
 purposes. Here's an overview of the dataset schema:
@@ -215,60 +193,49 @@ amount,timestamp,label
 1299.0,2024-05-01 14:45,0
 9999.0,2024-05-01 02:17,1
 Data Flow
-●
-●
-●
-The generate_transactions.py script generates and preprocesses this data.
-Data is used to train the ML models.
-Once trained, the models are serialized (pickled) and used by the Flask app for real-time
+● The generate_transactions.py script generates and preprocesses this data.
+● Data is used to train the ML models.
+● Once trained, the models are serialized (pickled) and used by the Flask app for real-time
 inference.
+
 Future Database Integration
 Although the current implementation uses a CSV-based dataset for simplicity and rapid
 prototyping, the architecture is designed to be database-ready. Possible upgrades include:
-●
-●
-●
-SQLite / PostgreSQL for storing transaction logs and user activity.
-MongoDB for handling large volumes of semi-structured transaction data.
-Firebase / Firestore for real-time syncing with mobile or cloud apps.
+● SQLite / PostgreSQL for storing transaction logs and user activity.
+● MongoDB for handling large volumes of semi-structured transaction data.
+● Firebase / Firestore for real-time syncing with mobile or cloud apps.
+
 The database can later support:
-●
-●
-●
-User authentication and role management.
-Historical transaction analysis.
-Graph-based fraud detection using linked transaction chains.
-Features Implemented
+● User authentication and role management.
+● Historical transaction analysis.
+● Graph-based fraud detection using linked transaction chains.
+
+## Features Implemented
 The UPI Fraud Detection Chatbot incorporates several key features that enable efficient,
 real-time fraud detection for digital transactions. These features ensure that the system is both
 user-friendly and robust in its ability to identify potentially fraudulent activities. Below is a
 detailed breakdown of the implemented features:
 1. User Input Form:
-○
-The system provides an intuitive user interface that allows individuals to enter
+○ The system provides an intuitive user interface that allows individuals to enter
 basic transaction data for fraud analysis. Users can input the transaction
 amount and timestamp, which are the two key parameters needed to assess
 the legitimacy of a UPI transaction. The form is built using HTML and styled with
 CSS, providing a simple yet effective interface.
-○
-Users can select a timestamp using the Flatpickr datetime picker, which
+○ Users can select a timestamp using the Flatpickr datetime picker, which
 simplifies the input process by providing an interactive calendar to choose the
 date and time.
 2. Real-Time Prediction:
-○
-After the user submits the transaction details, the data is sent to the backend,
+○ After the user submits the transaction details, the data is sent to the backend,
 where it is processed through an ensemble of machine learning models to detect
 fraud. The system uses Isolation Forest, One-Class Support Vector Machine
 (SVM), and XGBoost models to analyze the input data.
-○
-The models evaluate the transaction for any anomalies, outliers, or unusual
+○ The models evaluate the transaction for any anomalies, outliers, or unusual
 patterns in the transaction amount and timestamp. The system combines the
 predictions of these models using a majority voting strategy. This ensures that
 the final prediction is robust and minimizes the likelihood of false positives or
 false negatives.
 3. Chatbot UI:
-○
-To enhance the user experience, the frontend interface is designed as a chatbot.
+○ To enhance the user experience, the frontend interface is designed as a chatbot.
 This conversational format makes it easy for users to interact with the system.
 After the user inputs the transaction details, the chatbot responds with an instant
 prediction, either "Fraud" or "Not Fraud"
@@ -276,58 +243,50 @@ prediction, either "Fraud" or "Not Fraud"
 experience, especially for individuals who may not be familiar with more technical
 fraud detection systems.
 4. Report Generator:
-○
-The system includes an integrated report generation feature, which allows
+○ The system includes an integrated report generation feature, which allows
 users to download a PDF report summarizing the transaction evaluation and
 fraud detection results. This feature is powered by html2pdf.js, which converts
 the HTML content into a downloadable PDF file. This functionality is useful for
 users who want a formal record of their transaction evaluation for later reference.
 5. Model Training Script:
-○
-A crucial part of the project is the model training pipeline. The
+○ A crucial part of the project is the model training pipeline. The
 generate_transactions.py script generates synthetic transaction data and
 trains the machine learning models. This script is responsible for the generation
 of labeled data that is used to teach the models how to recognize fraudulent and
 legitimate transactions.
-○
-The script uses a combination of real and synthetic data to create a balanced
+○ The script uses a combination of real and synthetic data to create a balanced
 dataset that helps the models learn to identify fraudulent activity.
 6. Ensemble Prediction:
-○
-The heart of the fraud detection system is the ensemble learning approach. By
+○ The heart of the fraud detection system is the ensemble learning approach. By
 combining the predictions of three different machine learning models (Isolation
 Forest, One-Class SVM, and XGBoost), the system improves its predictive
 performance. The ensemble method leverages the strength of each individual
 model to create a more accurate and reliable fraud detection tool.
-○
-The final decision is made based on a majority vote from the models, ensuring
+○ The final decision is made based on a majority vote from the models, ensuring
 that a transaction is flagged as fraudulent only if a sufficient number of models
 agree on the outcome.
-Future Enhancements and Additional Features
-●
-●
-●
-●
-●
-User Authentication: Future versions of the system could incorporate a user
+#### Future Enhancements and Additional Features
+● User Authentication: Future versions of the system could incorporate a user
 authentication mechanism to allow for tracking individual usage, enhancing security and
 personalization.
-Transaction History Dashboard: A comprehensive dashboard could be added to
+● Transaction History Dashboard: A comprehensive dashboard could be added to
 visualize and analyze a user's past transactions, flagged transactions, and potential
 fraud patterns over time.
-Real-World Data Integration: The current system uses synthetic data for model
+● Real-World Data Integration: The current system uses synthetic data for model
 training. In the future, real transaction data could be incorporated to improve the models'
 accuracy and relevance.
-Advanced ML Models: The inclusion of deep learning models or graph-based
+● Advanced ML Models: The inclusion of deep learning models or graph-based
 algorithms could further enhance the fraud detection capabilities, particularly in
 identifying complex fraud schemes or transaction rings.
-Centralized Database: For scalability, the system could be integrated with a database
+● Centralized Database: For scalability, the system could be integrated with a database
 like SQLite or MongoDB to store transaction logs, prediction results, and user activity for
 auditing and compliance purposes.
+
 Overall, the features implemented in the UPI Fraud Detection Chatbot provide a comprehensive
 and effective solution for identifying fraudulent transactions in real-time, with a focus on user
 accessibility and system robustness.
-Number of Roles and Their Description
+
+## Number of Roles and Their Description
 The UPI Fraud Detection Chatbot project features different roles to ensure a streamlined
 operation, enhanced security, and user accessibility. These roles define the responsibilities and
 actions that different users can perform within the system, helping manage interactions between
@@ -339,36 +298,31 @@ The User role represents the end customer or individual who interacts directly w
 to evaluate UPI transactions. This role is designed to ensure that users can easily interact with
 the system to assess the safety of a transaction in real-time.
 Responsibilities:
-●
-●
-●
-●
-Transaction Input:
+● Transaction Input:
 The User enters basic details of a transaction, such as the amount and timestamp. This
 data is provided through the user interface in a simple form that mimics a chatbot
 interaction.
-Receive Prediction Results:
+● Receive Prediction Results:
 After submitting the transaction details, the User receives an immediate response, either
 indicating that the transaction is "Fraud" or "Not Fraud,
 " based on the analysis of the
 machine learning models. This prediction is made using an ensemble of models
 (Isolation Forest, One-Class SVM, and XGBoost) and combines the results through a
 majority voting system.
-Decision Making:
+● Decision Making:
 Based on the fraud prediction, Users can make decisions regarding the transaction, such
 as proceeding with or canceling the transaction. This empowers the User to prevent
 potential fraud before it occurs.
-Access to Reports:
+● Access to Reports:
 Users can generate a PDF report summarizing the fraud detection results. This feature
 adds an additional layer of transparency to the system, enabling Users to track their
 transaction assessments.
+
 User Interface:
-●
-●
-●
-Simple form to input transaction details.
-Real-time prediction displayed in a chatbot-style interface.
-A download link for PDF reports that summarize the outcome of the transaction analysis.
+● Simple form to input transaction details.
+● Real-time prediction displayed in a chatbot-style interface.
+● A download link for PDF reports that summarize the outcome of the transaction analysis.
+
 2. Admin Role (Future Scope)
 Description:
 The Admin role is designed for individuals or entities responsible for the maintenance, oversight,
@@ -377,45 +331,36 @@ manage model updates, monitor flagged transactions, and maintain the system's in
 the Admin role is not yet fully implemented in the current version of the system, it is planned for
 future releases.
 Responsibilities:
-●
-●
-Monitoring Flagged Transactions:
+● Monitoring Flagged Transactions:
 The Admin can review transactions flagged as "Fraud" or "Not Fraud" by the machine
 learning models. This review may involve analyzing flagged transactions for further
 investigation and determining whether the prediction was accurate or if there were any
 issues.
-Model Updates and Retraining:
+● Model Updates and Retraining:
 The Admin has the responsibility to manage the models that power the fraud detection
 system. This includes retraining models with new data, fine-tuning hyperparameters, or
 adding additional models to improve accuracy and detection capabilities.
-●
-●
-●
-User Management and Authentication:
+● User Management and Authentication:
 In the future, the Admin will also have access to user data and transaction history. This
 role will involve verifying user credentials, managing user permissions, and ensuring
 secure access to the system. Admins may also be able to assign roles or permissions to
 different types of users, such as adding new users or limiting access to sensitive
 information.
-System Maintenance and Reporting:
+● System Maintenance and Reporting:
 The Admin will monitor system performance, address any issues related to backend
 infrastructure (e.g., Flask server, model deployment), and generate system health
 reports. They may also have the ability to view logs, including failed transactions, system
 downtime, and other events.
-Audit and Compliance:
+● Audit and Compliance:
 Admins may be responsible for ensuring that all flagged transactions are handled
 according to relevant compliance and regulatory standards. They may be tasked with
 storing audit logs, reviewing flagged transactions, and ensuring that any follow-up
 actions align with security and privacy policies.
 Admin Interface (Planned Future Features):
-●
-●
-●
-●
-A dashboard to view and manage user accounts and their transactions.
-A system to monitor and review flagged transactions and predictions.
-Access to modify, update, and retrain the machine learning models.
-Reporting features for system performance, model accuracy, and user activity.
+● A dashboard to view and manage user accounts and their transactions.
+● A system to monitor and review flagged transactions and predictions.
+● Access to modify, update, and retrain the machine learning models.
+● Reporting features for system performance, model accuracy, and user activity.
 3. System Role
 Description:
 The System role is the internal layer responsible for executing the logic of the application,
@@ -423,35 +368,28 @@ including the backend services and machine learning models. While the System rol
 directly interacted with by users, it serves a crucial function in processing transaction data,
 generating fraud predictions, and providing results to the frontend interface.
 Responsibilities:
-●
-●
-●
-Transaction Processing:
+● Transaction Processing:
 The System listens for incoming transaction details from users, processes these details,
 and forwards the information to the machine learning models for evaluation. The
 backend component, implemented in Flask, facilitates this communication.
-Machine Learning Model Execution:
+● Machine Learning Model Execution:
 The core intelligence of the fraud detection system lies in the machine learning engine,
 which processes the transaction data using multiple models. The System evaluates each
 transaction using an ensemble of models (Isolation Forest, One-Class SVM, and
 XGBoost) and consolidates their predictions.
-Prediction Delivery:
+● Prediction Delivery:
 Once the models have made a prediction about whether a transaction is fraudulent, the
-●
 System packages the result (either "Fraud" or "Not Fraud") into a response and sends it
 back to the frontend to be displayed to the user.
-Report Generation:
+● Report Generation:
 The System is also responsible for generating the report summarizing the transaction
 and the fraud detection result. This is handled by a PDF generation library, which allows
 users to download a report for later review.
-System Interface:
-●
-●
-The backend Flask server processes incoming data and returns predictions.
-Machine learning models are trained and deployed as part of the system’s internal
+#### System Interface:
+● The backend Flask server processes incoming data and returns predictions.
+● Machine learning models are trained and deployed as part of the system’s internal
 pipeline.
-●
-PDF report generation is handled automatically upon request.
+● PDF report generation is handled automatically upon request.
 Summary of Roles
 Role Description Responsibilities
 User The end-user of the system who
