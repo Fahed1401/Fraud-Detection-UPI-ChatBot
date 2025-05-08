@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UPI Fraud Detection Chatbot</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+</head>
+<body>
+    <div class="chat-container">
+        <h1 class="chat-header">Fraud Detector</h1>
+        <div id="chatbox" class="chatbox"></div>
+        <form id="chat-form" class="chat-form">
+            <input type="number" id="amount" placeholder="Transaction Amount (INR)" required min="0" step="0.01" />
+            <input type="text" id="timestamp" placeholder="Select Date and Time" required />
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="script.js"></script>
+    <script>
+        flatpickr("#timestamp", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            position: "above"
+        });
+    </script>
+</body>
+</html>

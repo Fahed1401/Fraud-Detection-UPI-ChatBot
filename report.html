@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection Chatbot - Project Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .code-block {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fraud Detection Chatbot</h1>
+    <h2>Abstract</h2>
+    <p>
+        The Fraud Detection Chatbot is an innovative solution designed to detect potentially fraudulent financial transactions in real-time. The system employs multiple machine learning models including Isolation Forest, One-Class SVM, and XGBoost to provide robust fraud detection capabilities. By analyzing transaction amounts and timing patterns, the system offers a comprehensive approach to identifying suspicious activities while maintaining a user-friendly interface for easy interaction.
+    </p>
+
+    <h2>Introduction</h2>
+    <h3>Purpose of the Project</h3>
+    <p>
+        The primary purpose of this project is to create an accessible and efficient fraud detection system that can help financial institutions and businesses protect themselves and their customers from fraudulent transactions. The chatbot interface makes it easy for users to check transactions in real-time, while the underlying machine learning models provide sophisticated analysis based on transaction patterns.
+    </p>
+    <p>
+        The system is designed to be:
+        <ul>
+            <li>User-friendly and accessible through a web interface</li>
+            <li>Capable of real-time transaction analysis</li>
+            <li>Highly accurate through the use of multiple ML models</li>
+            <li>Scalable and maintainable</li>
+        </ul>
+    </p>
+
+    <h3>Problem Solution</h3>
+    <p>
+        Financial fraud is a significant concern in today's digital economy, with fraudsters becoming increasingly sophisticated in their methods. Traditional rule-based systems often fail to catch new fraud patterns and can generate many false positives. This project addresses these challenges by:
+    </p>
+    <ul>
+        <li>Implementing ensemble learning with multiple ML models for better accuracy</li>
+        <li>Using majority voting to reduce false positives</li>
+        <li>Providing real-time analysis of transactions</li>
+        <li>Offering detailed insights into why a transaction might be fraudulent</li>
+    </ul>
+
+    <h2>Technology Stack</h2>
+    <h3>Languages</h3>
+    <ul>
+        <li>Python (Backend)</li>
+        <li>HTML/CSS/JavaScript (Frontend)</li>
+    </ul>
+
+    <h3>Frameworks/Libraries</h3>
+    <ul>
+        <li>Flask - Web framework</li>
+        <li>Scikit-learn - Machine learning models (Isolation Forest, One-Class SVM)</li>
+        <li>XGBoost - Gradient boosting</li>
+        <li>Pandas - Data manipulation</li>
+        <li>NumPy - Numerical computations</li>
+    </ul>
+
+    <h2>System Architecture</h2>
+    <p>
+        The system follows a client-server architecture:
+    </p>
+    <ul>
+        <li>Frontend: Static HTML/CSS/JS served by Flask</li>
+        <li>Backend: Flask REST API</li>
+        <li>ML Models: Three different models running in parallel</li>
+        <li>Data Storage: CSV-based transaction database</li>
+    </ul>
+
+    <h2>Features Implemented</h2>
+    <ul>
+        <li>Real-time transaction analysis</li>
+        <li>Multi-model fraud detection system</li>
+        <li>Majority voting mechanism</li>
+        <li>Transaction amount and timing analysis</li>
+        <li>RESTful API endpoints</li>
+        <li>Automated model training</li>
+    </ul>
+
+    <h2>Code Highlights</h2>
+    <div class="code-block">
+        <pre>
+# Fraud Detection Logic
+def check_fraud():
+    # Process transaction features
+    features = preprocess_transaction(amount, timestamp)
+    
+    # Get predictions from multiple models
+    iso_pred = isolation_forest.predict(features)[0]
+    svm_pred = svm_model.predict(features)[0]
+    xgb_pred = xgb_model.predict(features_reduced)[0]
+    
+    # Implement majority voting
+    fraud_votes = sum([
+        1 if result == 'Potential Fraud' else 0
+        for result in [iso_result, svm_result, xgb_result]
+    ])
+    
+    # Final decision based on majority
+    fraud_detected = fraud_votes >= 2
+</pre>
+    </div>
+
+    <h2>Conclusion & Future Scope</h2>
+    <h3>Learnings and Takeaways</h3>
+    <ul>
+        <li>Ensemble learning provides more robust fraud detection than single models</li>
+        <li>Real-time processing requires careful optimization</li>
+        <li>Feature engineering is crucial for fraud detection</li>
+        <li>Balance between false positives and false negatives is essential</li>
+    </ul>
+
+    <h3>Future Improvements</h3>
+    <ul>
+        <li>Implementation of deep learning models</li>
+        <li>Addition of more transaction features</li>
+        <li>User authentication system</li>
+        <li>Historical transaction analysis</li>
+        <li>API rate limiting and security enhancements</li>
+        <li>Mobile application development</li>
+    </ul>
+</body>
+</html>
