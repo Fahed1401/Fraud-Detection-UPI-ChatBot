@@ -60,7 +60,7 @@ The chatbot offers fraud prediction in real-time, empowering users to cancel sus
 
 ---
 
-##📌 Architecture
+## 📌 Architecture
 - Frontend (HTML, JS)
   - Collects user input (amount, timestamp) via chatbot UI
   - Sends data to backend via HTTP POST
