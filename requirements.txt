@@ -1,7 +1,16 @@
+# Linux x86-64 + Python 3.13 (Vercel) matches the bundled training versions.
+# Older Python/macOS retains compatible flexible versions for local retraining.
 Flask>=3.0,<4.0
-numpy>=1.26,<3.0
-pandas>=2.1,<3.0
-scikit-learn>=1.4,<2.0
-xgboost>=2.1,<4.0
-joblib>=1.3,<2.0
+numpy==2.3.5; python_version >= "3.12"
+numpy>=1.26,<3.0; python_version < "3.12"
+pandas==2.2.3; python_version >= "3.12"
+pandas>=2.1,<3.0; python_version < "3.12"
+scikit-learn==1.8.0; python_version >= "3.12"
+scikit-learn>=1.4,<2.0; python_version < "3.12"
+scipy==1.17.0; python_version >= "3.12"
+xgboost-cpu==3.1.3; sys_platform == "linux" and platform_machine == "x86_64" and python_version >= "3.12"
+xgboost==3.1.3; sys_platform != "linux" and python_version >= "3.12"
+xgboost>=2.1,<4.0; python_version < "3.12" or (sys_platform == "linux" and platform_machine != "x86_64")
+joblib==1.5.3; python_version >= "3.12"
+joblib>=1.3,<2.0; python_version < "3.12"
 gunicorn>=22,<25

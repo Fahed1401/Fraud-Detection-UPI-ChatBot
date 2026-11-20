@@ -22,7 +22,13 @@ from xgboost import XGBClassifier
 from generate_transactions import generate_transactions
 
 ROOT = Path(__file__).resolve().parent
-MODEL_PATH = Path(os.getenv("MODEL_PATH", str(ROOT / ".model_cache" / "ensemble.joblib")))
+# The bundled model was generated from this repository's own synthetic data.
+# On Vercel, always load the read-only artifact. Never train or save on an HTTP request.
+# Local development keeps a separate writable cache (and may use older Python wheels).
+IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+BUNDLED_MODEL_PATH = ROOT / "model_artifacts" / "ensemble.joblib"
+DEFAULT_PATH = BUNDLED_MODEL_PATH if IS_VERCEL else ROOT / ".model_cache" / "ensemble.joblib"
+MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_PATH)))
 _LOCK = threading.Lock()
 _BUNDLE: dict | None = None
 
@@ -107,14 +113,22 @@ def model_ready() -> bool:
 
 
 def get_model() -> dict:
+    """Load a deterministic model from the immutable Vercel deployment or local cache.
+
+    The production HTTP request path never trains a model or writes to disk.
+    """
     global _BUNDLE
     if _BUNDLE is not None:
         return _BUNDLE
     with _LOCK:
         if _BUNDLE is None:
-            if MODEL_PATH.exists():
-                # Only load artifacts created locally by this codebase.
+            if MODEL_PATH.is_file():
                 _BUNDLE = joblib.load(MODEL_PATH)
+            elif IS_VERCEL:
+                raise FileNotFoundError(
+                    "Bundled model_artifacts/ensemble.joblib is missing. "
+                    "Check vercel.json includeFiles and project root."
+                )
             else:
                 bundle = train_models()
                 MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)

@@ -1,3 +1,7 @@
+> **Vercel 404 / not_ready fix (20 November 2026):** Read [VERCEL_404_MODEL_FIX.md](VERCEL_404_MODEL_FIX.md) for the exact GitHub and Vercel deployment steps.
+
+> **Deploy full stack on Vercel:** See [VERCEL_DEPLOY.md](VERCEL_DEPLOY.md). This variant supports the original Flask API and frontend under one domain (no external Python host required).
+
 # UPI Sentinel · Fraud Detection Research Dashboard
 
 > A full-stack, portfolio-ready **research prototype** for interpreting UPI transaction anomalies with three machine-learning models. **Synthetic training data only; not validated for detecting actual fraud.**
@@ -24,7 +28,7 @@
 | --- | --- |
 | UI | Semantic HTML5, vanilla JavaScript, CSS variables, SVG icon system |
 | Server | Python, Flask, Gunicorn |
-| ML | scikit-learn, XGBoost, NumPy, Pandas, joblib |
+| ML | scikit-learn, XGBoost (CPU-only on Linux/Vercel), NumPy, Pandas, joblib |
 | Automation | pytest, GitHub Actions |
 | Hosting | Render (complete app), optional Vercel (static frontend only) |
 
@@ -98,9 +102,13 @@ A deterministic run on **4,200 synthetic examples** (840 held out) on the update
 
 ## Deployment
 
-**Recommended: deploy both frontend and ML API on Render.** `render.yaml` is included. See [DEPLOYMENT.md](DEPLOYMENT.md) for the complete GitHub upload, Render and optional Vercel instructions.
+**Preferred free portfolio deployment:** Use Vercel for both the responsive frontend and the Flask + ML API. Set **Root Directory to `./`** (the repository root). See [VERCEL_DEPLOY.md](VERCEL_DEPLOY.md) for exact settings and troubleshooting.
 
-**If using Vercel:** set its **Root Directory to `public`**, use the **Other** framework preset with no build command, and deploy the Python backend separately on Render. Then edit `public/config.js` to point to the Render URL and set `CORS_ORIGINS` on Render to your *exact* Vercel origin. If you deploy only the static files with the default config, the page will display **Engine unavailable** and offer a clearly labeled guided demo; custom ML predictions will not run.
+The initial Vercel package exceeded the default 500 MB Python Function size. This version fixes the dependency bloat by using the significantly smaller official `xgboost-cpu` package on Linux x86-64 with Python >= 3.12. It still imports `XGBClassifier` from `xgboost` and retains all three models. Mac installation continues using standard XGBoost. No separate Render backend is needed. If still blocked, enable `VERCEL_SUPPORT_LARGE_FUNCTIONS=1` on eligible Vercel projects and redeploy, or investigate the build log.
+
+For server environments using macOS or other platforms, `requirements.txt` automatically chooses standard XGBoost via platform markers. Only synthetic transactions are used for training.
+
+**Alternative:** Render Blueprint configuration remains included for users who want a persistent server.
 
 ## Repo layout
 
@@ -140,3 +148,8 @@ For a production financial platform, add authentication, authorization, API quot
 ## License
 
 No license file is provided. Add your chosen open-source license if you intend others to reuse the code.
+
+
+## Vercel inference deployment
+
+See `VERCEL_RUNTIME_FIX.md` for the bundled-model API and deployment diagnostics.

@@ -1,0 +1,4 @@
+# The model is pre-trained and bundled in model_artifacts/.
+# Do not train during build or inside a serverless request.
+[tool.vercel]
+entrypoint = "app:app"

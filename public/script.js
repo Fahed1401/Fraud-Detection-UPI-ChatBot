@@ -55,35 +55,45 @@
     window.scrollTo({top:0,behavior:"instant"});
     if (view === "history") renderHistory();
   }
-  function setMode(mode) {
+  function setMode(mode, detail = "") {
     state.mode = mode;
-    const b = $("connection-badge"), m = $("mode-banner-text"), a = $("mode-action");
+    const b = $("connection-badge"), m = $("mode-banner-text"), a = $("mode-action"), d = $("mode-demo-action");
     b.className = `connection ${mode === "live" ? "online" : mode === "demo" ? "demo" : "offline"}`;
     if (mode === "live") {
       $("connection-text").textContent = "ML engine online";
       m.textContent = "Live ML engine connected. Assessments are produced by the trained synthetic-data ensemble.";
-      a.hidden = true;
+      a.hidden = true; d.hidden = true;
     } else if (mode === "demo") {
       $("connection-text").textContent = "Guided demo";
       m.textContent = "DEMO MODE — illustrative sample outputs only. No machine-learning inference is running. Only the two preset examples can be previewed.";
-      a.textContent = "Retry connection"; a.hidden = false;
+      a.textContent = "Retry connection"; a.hidden = false; d.hidden = true;
     } else {
       $("connection-text").textContent = mode === "checking" ? "Checking engine" : "Engine unavailable";
-      m.textContent = mode === "checking" ? "Connecting to the inference API…" : "The ML API is not reachable. Start the Flask backend to run real inference, or explore two clearly labeled demo scenarios.";
-      a.textContent = "Try guided demo"; a.hidden = mode === "checking";
+      m.textContent = mode === "checking" ? "Connecting to the inference API…" : `ML API unavailable. ${detail || "Check /api/ping and /api/health."}`;
+      a.textContent = "Retry connection"; a.hidden = mode === "checking";
+      d.hidden = mode === "checking";
     }
   }
   async function checkHealth() {
     setMode("checking");
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7500);
+    const timer = setTimeout(() => controller.abort(), 45000);
     try {
       const response = await fetch(`${API_BASE}/api/health`, {signal: controller.signal, cache:"no-store"});
-      if (!response.ok) throw Error(`HTTP ${response.status}`);
+      const type = response.headers.get("content-type") || "";
+      if (!type.includes("application/json")) {
+        throw new Error(`HTTP ${response.status}: API returned non-JSON content. Verify Vercel Root Directory ./ and Flask framework preset.`);
+      }
       const json = await response.json();
-      if (json.status !== "ready") throw Error("Model not ready");
+      if (!response.ok || json.status !== "ready") {
+        throw new Error(`HTTP ${response.status}: ${json.message || json.reason || "Model not ready"}${json.error_type ? ` (${json.error_type})` : ""}. Check Vercel Runtime Logs.`);
+      }
       setMode("live");
-    } catch { setMode("offline"); } finally {clearTimeout(timer);}
+    } catch (error) {
+      const reason = error?.name === "AbortError" ? "Request timed out after 45s. Check cold-start and function logs." : (error?.message || "Network error; verify the API endpoint.");
+      console.warn("UPI Sentinel health check failed:", reason);
+      setMode("offline", reason);
+    } finally {clearTimeout(timer);}
   }
   function sample(which) {
     const d = new Date(); d.setDate(d.getDate()-1);
@@ -262,7 +272,8 @@
     document.querySelectorAll("[data-sample]").forEach((el)=>el.addEventListener("click",()=>sample(el.dataset.sample)));
     for (const id of ["amount","timestamp"]) $(id).addEventListener("input",()=>{document.querySelectorAll("[data-sample]").forEach((el)=>el.classList.remove("selected"));});
     $("analysis-form").addEventListener("submit",submitAnalysis);
-    $("mode-action").addEventListener("click",()=>state.mode==="demo"?checkHealth():setMode("demo"));
+    $("mode-action").addEventListener("click",checkHealth);
+    $("mode-demo-action").addEventListener("click",()=>setMode("demo"));
     $("history-search").addEventListener("input",renderHistory);$("history-filter").addEventListener("change",renderHistory);
     $("clear-history").addEventListener("click",()=>{if(!state.history.length)return;if(window.confirm("Clear all assessments stored in this browser tab?")){state.history=[];saveHistory();renderHistory();renderRecent();renderStats();showToast("Session history cleared.");}});
     $("export-history").addEventListener("click",exportCSV);$("copy-report").addEventListener("click",copyReport);$("download-report").addEventListener("click",printReport);

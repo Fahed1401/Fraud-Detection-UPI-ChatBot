@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "app.py": {
+      "maxDuration": 120,
+      "includeFiles": "{model_artifacts/**,public/**}",
+      "excludeFiles": "{tests/**,docs/**,.github/**,.pytest_cache/**,**/__pycache__/**,requirements-dev.txt,render.yaml,Procfile,README.md,REVIEW_NOTES.md,DEPLOYMENT.md,VERCEL_DEPLOY.md,VERCEL_RUNTIME_FIX.md,VERCEL_404_MODEL_FIX.md}"
+    }
+  },
+  "framework": "flask"
+}

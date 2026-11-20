@@ -11,3 +11,5 @@ venv/
 .coverage
 .DS_Store
 node_modules/
+
+!model_artifacts/ensemble.joblib
