@@ -1,141 +1,80 @@
-from flask import Flask, request, jsonify, send_from_directory
+"""Flask API and tightly scoped static frontend for UPI Sentinel."""
+from __future__ import annotations
+
 import os
-import pandas as pd
-import numpy as np
-from sklearn.ensemble import IsolationForest
-from sklearn.svm import OneClassSVM
-from xgboost import XGBClassifier
-from sklearn.feature_selection import SelectKBest, f_classif
-from datetime import datetime
-from generate_transactions import generate_transactions
+from pathlib import Path
 
-app = Flask(__name__, static_folder='../frontend', static_url_path='/')
+from flask import Flask, jsonify, request, send_from_directory
+from model import get_model, model_ready, predict_transaction
 
-# Generate transactions if CSV missing or too small
-csv_path = os.path.join(os.path.dirname(__file__), "transactions.csv")
-if not os.path.exists(csv_path) or os.path.getsize(csv_path) < 1000:
-    generate_transactions()
+ROOT = Path(__file__).resolve().parent
+PUBLIC = ROOT / "public"
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 4096
+ALLOWED_ORIGINS = {origin.strip().rstrip("/") for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()}
 
-# Global model variables
-isolation_forest = None
-svm_model = None
-selector = None
-xgb_model = None
 
-def train_models():
-    global isolation_forest, svm_model, selector, xgb_model
-    data = generate_transactions(num_transactions=20000)
-    if data is not None:
-        data.dropna(inplace=True)
-        data['Hour'] = pd.to_datetime(data['Timestamp']).dt.hour
-        features = ['Amount (INR)', 'Hour']
+@app.after_request
+def security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'"
+    origin = request.headers.get("Origin", "").rstrip("/")
+    if origin in ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Vary"] = "Origin"
+    return response
 
-        # Adjust contamination to match actual fraud ratio and increase n_estimators
-        isolation_forest = IsolationForest(n_estimators=200, contamination=0.03, random_state=42)
-        isolation_forest.fit(data[features])
 
-        # Adjust SVM parameters for better normal transaction detection
-        svm_model = OneClassSVM(nu=0.01, kernel="rbf", gamma='scale')
-        svm_model.fit(data[features])
+@app.errorhandler(413)
+def oversized_request(_error):
+    return jsonify(error="Request payload is too large."), 413
 
-        # Use isolation forest predictions for training XGBoost
-        data['Synthetic_Fraud_Label'] = (data['Amount (INR)'] > 8000).astype(int)
-        X = data[features]
-        y = data['Synthetic_Fraud_Label']
 
-        selector = SelectKBest(score_func=f_classif, k=2)
-        X_reduced = selector.fit_transform(X, y)
+@app.get("/")
+def index():
+    return send_from_directory(PUBLIC, "index.html")
 
-        # Adjust XGBoost parameters for better balance
-        xgb_model = XGBClassifier(
-            use_label_encoder=False,
-            eval_metric='logloss',
-            n_estimators=100,
-            max_depth=3,
-            learning_rate=0.05,
-            scale_pos_weight=20,
-            min_child_weight=5,
-            random_state=42
-        )
-        xgb_model.fit(X_reduced, y)
 
-    else:
-        # If data is None, set models to None to avoid NoneType errors
-        globals()['isolation_forest'] = None
-        globals()['svm_model'] = None
-        globals()['selector'] = None
-        globals()['xgb_model'] = None
+@app.get("/<asset>")
+def static_asset(asset: str):
+    if asset not in {"script.js", "style.css", "config.js", "favicon.svg"}:
+        return jsonify(error="Not found."), 404
+    return send_from_directory(PUBLIC, asset)
 
-def preprocess_transaction(amount, timestamp):
-    try:
-        # Remove currency symbol and commas, convert to float
-        if isinstance(amount, str):
-            amount = amount.replace('₹', '').replace(',', '').strip()
-        amount = float(amount)
-        
-        # More robust timestamp parsing
-        try:
-            hour = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S").hour
-        except ValueError:
-            # Try alternative format if first attempt fails
-            hour = datetime.strptime(timestamp, "%Y-%m-%d %H:%M").hour
-            
-        return np.array([[amount, hour]])
-    except Exception as e:
-        raise ValueError(f"Error processing transaction: {str(e)}")
 
-@app.route('/api/check_fraud', methods=['POST'])
+@app.get("/api/health")
+def health():
+    return jsonify(status="ready" if model_ready() else "not_ready",
+                   model_type="three_model_ensemble", training_data="synthetic_only",
+                   message="Run python train.py to initialize the inference artifact." if not model_ready() else ""), (200 if model_ready() else 503)
+
+
+@app.route("/api/check_fraud", methods=["POST", "OPTIONS"])
 def check_fraud():
-    global isolation_forest, svm_model, selector, xgb_model
-    data = request.json
-    amount = data.get('amount')
-    timestamp = data.get('timestamp')
-    if amount is None or timestamp is None:
-        return jsonify({'error': 'Missing amount or timestamp'}), 400
-
-    if isolation_forest is None or svm_model is None or selector is None or xgb_model is None:
-        return jsonify({'error': 'Models are not loaded yet'}), 500
-
+    if request.method == "OPTIONS":
+        return ("", 204)
+    if not request.is_json:
+        return jsonify(error="Send a JSON request with Content-Type: application/json."), 415
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(error="JSON body must be an object."), 400
     try:
-        features = preprocess_transaction(amount, timestamp)
-        
-        # Adjust fraud detection logic
-        iso_pred = isolation_forest.predict(features)[0]
-        iso_result = 'Normal' if iso_pred == 1 else 'Potential Fraud'
+        # Reject invalid input before loading potentially expensive models.
+        from model import parse_transaction
+        parse_transaction(data.get("amount"), data.get("timestamp"))
+        result = predict_transaction(data["amount"], data["timestamp"], get_model())
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify(error=str(exc)), 400
+    except Exception:
+        app.logger.exception("Inference error")
+        return jsonify(error="The inference engine could not complete this request."), 503
 
-        svm_pred = svm_model.predict(features)[0]
-        svm_result = 'Normal' if svm_pred == 1 else 'Potential Fraud'
 
-        features_reduced = selector.transform(features)
-        xgb_pred = xgb_model.predict(features_reduced)[0]
-        xgb_result = 'Potential Fraud' if xgb_pred == 1 else 'Normal'
-
-        # Implement majority voting
-        fraud_votes = sum([
-            1 if result == 'Potential Fraud' else 0
-            for result in [iso_result, svm_result, xgb_result]
-        ])
-        
-        # Only mark as fraud if at least 2 models agree
-        fraud_detected = fraud_votes >= 2
-
-        return jsonify({
-            'isolation_forest': iso_result,
-            'svm': svm_result,
-            'xgboost': xgb_result,
-            'fraud_detected': fraud_detected
-        })
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-
-@app.route('/')
-def serve_frontend():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/report')
-def serve_report():
-    return send_from_directory(app.static_folder, 'report.html')
-
-if __name__ == '__main__':
-    train_models()
-    app.run(debug=True, host='0.0.0.0', port=5001)
+if __name__ == "__main__":
+    get_model()  # Ensure the dev server health endpoint is ready before browser load.
+    app.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", "5001")), debug=False)

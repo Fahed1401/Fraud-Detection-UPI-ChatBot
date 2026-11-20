@@ -1,87 +1,142 @@
-# 💬 Fraud Detection UPI Chatbot 🚨
+# UPI Sentinel · Fraud Detection Research Dashboard
 
-## Abstract
+> A full-stack, portfolio-ready **research prototype** for interpreting UPI transaction anomalies with three machine-learning models. **Synthetic training data only; not validated for detecting actual fraud.**
 
-The rapid adoption of digital payment systems like the Unified Payments Interface (UPI) has revolutionized financial transactions in India and beyond. However, this convenience also increases exposure to cyber fraud. This project introduces a UPI Fraud Detection Chatbot—an intelligent, real-time, ML-powered tool designed to assist both users and institutions in detecting potentially fraudulent transactions.
+![Dashboard preview](docs/screenshots/overview.png)
 
-Using an ensemble of machine learning models—Isolation Forest, One-Class SVM, and XGBoost—the system analyzes transaction amount and timestamp data to flag anomalies. A majority-vote mechanism ensures robust fraud prediction while minimizing false positives and negatives.
+## Highlights
 
-The architecture includes a Flask backend and a responsive web-based frontend using HTML, CSS, JavaScript, and Flatpickr. The chatbot interface allows users to input transaction details and receive immediate fraud risk assessments. A PDF report generation module further enhances the system's utility by providing downloadable summaries.
-This project bridges advanced analytics with intuitive design to offer a scalable solution for proactive digital transaction security.
+- Responsive transaction-intelligence workspace with separate Overview, Analyzer, Session History and Methodology views.
+- Light/dark modes, guided explanations, sample scenarios, session-only history, CSV export, and browser **Print / Save as PDF** reports.
+- Three-model ensemble: **Isolation Forest**, **One-Class SVM**, and **XGBoost**, with strict 2-of-3 voting.
+- Reproducible *synthetic* data generator, log-amount / cyclical-time features and standardized model inputs.
+- Validation of amounts, dates, payload types and sizes; consistent JSON errors, scoped frontend file serving, restrictive CORS and security headers.
+- Flask REST API, training CLI, Render deployment Blueprint and pytest/GitHub Actions coverage.
+- Unambiguous **guided demo mode** when the ML API is unavailable. Its example outputs are illustrations, **never represented as live inference**.
 
----
+| Analyzer (illustrative demo) | Mobile dashboard |
+| --- | --- |
+| ![Analyzer example](docs/screenshots/illustrative-demo.png) | ![Mobile example](docs/screenshots/mobile.png) |
 
-## 🚀 Introduction
+## Technology
 
-The project's goal is to develop a real-time fraud detection system for UPI transactions using machine learning. Unlike rule-based systems that react after fraud occurs, this system proactively identifies suspicious activity before the transaction completes.
+| Layer | Stack |
+| --- | --- |
+| UI | Semantic HTML5, vanilla JavaScript, CSS variables, SVG icon system |
+| Server | Python, Flask, Gunicorn |
+| ML | scikit-learn, XGBoost, NumPy, Pandas, joblib |
+| Automation | pytest, GitHub Actions |
+| Hosting | Render (complete app), optional Vercel (static frontend only) |
 
-Leveraging unsupervised and supervised learning techniques, the system detects anomalies in transaction data without relying on static fraud rules. The solution is packaged in an easy-to-use chatbot interface, ensuring accessibility for both tech-savvy users and laypersons.
+## Quick start (macOS, Linux, Windows)
 
-Educationally, the project serves as a complete ML deployment case study—from data generation and model training to API integration and frontend interfacing.
+Use **Python 3.11 or 3.12**. At repository root:
 
----
+```bash
+python3 -m venv .venv
+source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python train.py                     # trains/saves the synthetic model locally
+python app.py                       # Flask development server
+```
 
-## ❓Problem Statement
+Open **http://127.0.0.1:5001**. The badge should read **ML engine online**.
 
-Despite the growth of UPI transactions, proactive fraud detection remains inaccessible to individual users. Existing solutions are mostly internal to banks, rule-based, and reactive.
+To run the full test suite:
 
-This project addresses:
-- Lack of real-time, user-facing fraud assessment tools.
-- Inflexibility of static fraud rules against evolving scam tactics.
-- Absence of lightweight, deployable ML-driven fraud detection systems.
- 
-The chatbot offers fraud prediction in real-time, empowering users to cancel suspicious transactions before confirmation. Its architecture is designed for extensibility, making it suitable for fintech startups or community-level deployment.
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+node --check public/script.js       # optional, requires Node.js
+```
 
----
+`python train.py` writes `.model_cache/ensemble.joblib`, excluded from version control. **Do not unpickle model artifacts downloaded from untrusted sources.** To retrain, remove the cached file and run `python train.py` again.
 
-## 🎯 Features
+## API
 
-- 🔍 **Fraud Detection**: Real-time prediction using ensemble ML models.
-- 💬 **Chatbot UI**: Easy-to-use conversational interface for input.
-- 🧠 **ML Models Used**:
-  - Isolation Forest
-  - One-Class SVM
-  - XGBoost
-- 🧾 **PDF Report**: Downloadable prediction summary.
-- ⚡ **Fast API Responses**: Backend served via Flask.
-- 📊 **Synthetic Data Generation**: Trainable and extendable with custom data.
+### GET `/api/health`
 
----
+Returns `200` and `{"status":"ready", "training_data":"synthetic_only", ...}` if the model is available. Returns `503` and `status: not_ready` if it has not been trained yet.
 
-## 🧠 Tech Stack
+### POST `/api/check_fraud`
 
-| Layer        | Technology                     |
-| ------------ | ------------------------------ |
-| Frontend     | HTML, CSS, JavaScript, Flatpickr |
-| Backend      | Python, Flask                  |
-| ML Models    | scikit-learn, XGBoost          |
-| Data Handling| Pandas, NumPy                  |
-| PDF Export   | html2pdf.js                    |
+```bash
+curl -X POST http://127.0.0.1:5001/api/check_fraud \
+  -H 'Content-Type: application/json' \
+  -d '{"amount":35000,"timestamp":"2026-11-18 02:10"}'
+```
 
----
+Example response (actual votes depend on the trained artifact and parameters):
 
-## 📌 Architecture
-- Frontend (HTML, JS)
-  - Collects user input (amount, timestamp) via chatbot UI
-  - Sends data to backend via HTTP POST
-- Backend (Flask)
-  - Receives and parses input
-  - Routes to ML prediction function
-  - Returns prediction ("Fraud" / "Not Fraud")
-- ML Engine (Ensemble Model)
-  - Isolation Forest: Unsupervised anomaly detection
-  - One-Class SVM: Detects deviations from normal
-  - XGBoost: Supervised classification
-  - Majority Voting: Final decision output
-- Output
-  - JSON response displayed on frontend
-  - Optional downloadable PDF report
+```json
+{
+  "isolation_forest": "Potential Fraud",
+  "svm": "Potential Fraud",
+  "xgboost": "Potential Fraud",
+  "fraud_detected": true,
+  "fraud_votes": 3,
+  "risk_level": "elevated",
+  "training_data": "synthetic_only",
+  "signals": ["Descriptive context 1", "Descriptive context 2"],
+  "disclaimer": "Research prototype only. Not validated for real UPI fraud decisions."
+}
+```
 
----
+Amounts must be numeric or valid INR-formatted strings between ₹0.01 and ₹1,00,00,000; timestamps must be parseable ISO date/time strings in years 2020–2100. Malformed requests return a descriptive 400/415 response.
 
-## 🛠️ Installation & Setup
+## Machine learning: what the project actually measures
 
-1. **Clone the repo**  
-   ```bash
-   git clone https://github.com/yourusername/fraud-detection-upi-chatbot.git
-   cd fraud-detection-upi-chatbot
+The data generator creates approximately 92% *routine synthetic* records and 8% *anomalous synthetic* records, with overlapping amount and time-of-day distributions. Labels are computer-generated. The engineering pipeline:
+
+1. Transform amount with `log1p`, time of day into sine and cosine, then standardize on routine-only training observations.
+2. Train Isolation Forest and One-Class SVM on routine synthetic examples only.
+3. Train XGBoost on the labelled synthetic training split.
+4. Apply the three models on the held-out split; use two or more votes for an elevated signal.
+5. Report the model-vote output, not a fabricated fraud probability.
+
+A deterministic run on **4,200 synthetic examples** (840 held out) on the updated code produced **precision 0.743, recall 0.821 and F1 0.780** for majority-vote detection of *synthetic anomalies*. This does **not** measure real-world UPI fraud performance. It would require genuine, consented, labeled transaction data, stronger features, representative evaluation, fairness/security audits, and robust calibration.
+
+## Deployment
+
+**Recommended: deploy both frontend and ML API on Render.** `render.yaml` is included. See [DEPLOYMENT.md](DEPLOYMENT.md) for the complete GitHub upload, Render and optional Vercel instructions.
+
+**If using Vercel:** set its **Root Directory to `public`**, use the **Other** framework preset with no build command, and deploy the Python backend separately on Render. Then edit `public/config.js` to point to the Render URL and set `CORS_ORIGINS` on Render to your *exact* Vercel origin. If you deploy only the static files with the default config, the page will display **Engine unavailable** and offer a clearly labeled guided demo; custom ML predictions will not run.
+
+## Repo layout
+
+```text
+.
+├── public/
+│   ├── index.html           # responsive UI, all four workspace views
+│   ├── style.css            # design system + light/dark themes
+│   ├── script.js            # browser interactions and API requests
+│   ├── config.js            # optional hosted API base URL
+│   └── favicon.svg
+├── app.py                   # Flask routes, validation, headers, CORS
+├── model.py                 # feature prep, training, inference, voting
+├── generate_transactions.py # reproducible synthetic data generator
+├── train.py                 # builds locally trusted joblib artifact
+├── tests/                   # model and Flask route/API tests
+├── .github/workflows/ci.yml # CI
+├── render.yaml / Procfile   # deployment config
+├── requirements.txt
+└── DEPLOYMENT.md
+```
+
+## Important limitations
+
+This app **does not access UPI, banking services, or real transaction data**. It does not determine recipient legitimacy, detect phishing, or block/reverse payments. Session history is stored in the tab's `sessionStorage`, so it is not an audit database. Guided demo results are fixed illustrations, not live ML results. The “explain this assessment” prompts are deterministic guidance, not a generative AI service. Do not enter banking credentials, OTPs, UPI PINs, or sensitive account identifiers.
+
+For a production financial platform, add authentication, authorization, API quotas/rate limiting, structured monitoring, a secure database, audited fraud labels, a model registry, drift detection and privacy controls. The current starter is not appropriate for autonomous payment blocking.
+
+## Resume-ready project description
+
+**UPI Sentinel — ML-Powered Transaction Anomaly Dashboard** | Python, Flask, scikit-learn, XGBoost, HTML/CSS/JavaScript
+
+- **Built** an end-to-end UPI transaction anomaly-screening research application with a responsive dashboard, a REST API and three-model ensemble; **implemented 2-of-3 consensus voting and model-by-model explanations**.
+- **Achieved 0.780 F1 on a reproducible 840-record held-out synthetic test set** by engineering cyclical time features, scaling model inputs and combining Isolation Forest, One-Class SVM and XGBoost; **metrics are synthetic-only**.
+- **Added** session history, report exports, validation, isolated training artifacts, CI tests and deployment configuration to improve demonstration readiness and maintainability.
+
+## License
+
+No license file is provided. Add your chosen open-source license if you intend others to reuse the code.
